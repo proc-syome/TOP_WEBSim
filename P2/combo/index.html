@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>連携プログラム_コンボ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+/* Layout: 1カラム。上に設定、中央に図、下に操作ボタン */
+:root{
+  --bg:#0f1218; --panel:#181d26; --line:#2b3340; --fg:#e7eaf0; --mute:#8b94a5;
+  --accent:#5fd3c4; --hit:#ff4d5e; --ok:#57d98a;
+  --mkA:#ff5a5a; --mkB:#ffd23f; --mkC:#4ea8ff; --mkD:#c07bff;
+  --omF:#e8434f; --omM:#3c7dff;
+  --display:"Chakra Petch","Zen Kaku Gothic New",system-ui,sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding-block:16px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-size:1.35rem;margin:0;letter-spacing:.04em;text-wrap:balance}
+h1 small{display:block;font-family:var(--body);font-size:.8rem;color:var(--mute);font-weight:400;letter-spacing:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.label{font-family:var(--display);font-size:.72rem;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.pt-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.hint{font-size:.78rem;color:var(--mute);margin-top:-6px}
+.pt{position:relative;display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(56px,22vw,120px)}
+.tethers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.ptcol{position:relative;display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:6px;font:700 .95rem var(--display);padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+#colR .slot{flex-direction:row-reverse}
+.slot svg{flex:none;display:block}
+.slot[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.slot:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.party{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;font-size:.88rem}
+.pm{display:flex;justify-content:space-between;gap:8px;padding:3px 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+.pm.me{background:rgba(95,211,196,.15);outline:1px solid var(--accent)}
+.pm b{font-family:var(--display)}
+.sym{font-weight:700;min-width:1.4em;text-align:center}
+.debuff{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{font:700 .85rem var(--display);padding:3px 10px;border-radius:99px;border:1px solid currentColor}
+.chip.mid{color:#ffb547}.chip.far{color:#7fc8ff}
+.field{width:min(760px,calc(100vw - 12px));max-width:none;align-self:center;aspect-ratio:1;display:block;touch-action:manipulation;cursor:crosshair}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{flex:1;min-width:120px;font:700 .95rem var(--body);padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0f1218}
+.btn:disabled{opacity:.4;cursor:default}
+.result{font-weight:700;padding:10px 12px;border-radius:8px;border:1px solid var(--line)}
+.result.ok{color:var(--ok);border-color:var(--ok)}
+.result.ng{color:var(--hit);border-color:var(--hit)}
+.result ul{margin:4px 0 0;padding-left:1.2em;font-weight:400;color:var(--fg);font-size:.88rem}
+.opt{display:flex;align-items:center;gap:8px;font-size:.92rem;cursor:pointer}
+.opt input{width:18px;height:18px;accent-color:var(--accent)}
+.ta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qn{display:flex;align-items:center;gap:6px}
+.qn input{width:4.5em;font:700 1rem var(--display);padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums}
+.btn.small{flex:none;min-width:0;padding:7px 14px;font-size:.88rem}
+.ta-final{padding:8px 10px;border-radius:8px;border:1px solid var(--accent);color:var(--fg);font-size:.92rem}
+.ta-final b{color:var(--accent);font-family:var(--display)}
+.ta-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:8px 12px;text-align:center}
+.ta-bar small{display:block;font-size:.7rem;color:var(--mute);letter-spacing:.1em}
+.ta-bar b{font:700 1.25rem var(--display);font-variant-numeric:tabular-nums}
+.legend{font-size:.82rem;color:var(--mute);display:flex;flex-direction:column;gap:2px}
+.legend b{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){.aoe{animation:fade .35s ease-out}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.back{font-size:.82rem;color:var(--mute);text-decoration:none}
+.back:hover{color:var(--accent)}
+.site-foot{margin-top:8px;padding-top:12px;border-top:1px solid var(--line);font-size:.75rem;line-height:1.7;color:var(--mute);text-align:center}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>連携プログラム_コンボ</h1>
+
+  <section class="panel" aria-labelledby="lbl-opt">
+    <div class="label" id="lbl-opt">オプション</div>
+    <label class="opt"><input type="checkbox" id="instant" checked> 安置を選んだ時点で結果を表示</label>
+    <label class="opt"><input type="checkbox" id="graybg"> オメガの背景色をグレーにする（F/Mを区別できなくする）</label>
+    <div class="ta-row">
+      <label class="opt" for="qcount">タイムアタック</label>
+      <span class="qn"><input type="number" id="qcount" min="1" max="200" value="30" inputmode="numeric"> 問</span>
+      <button class="btn small primary" id="ta-start" type="button">スタート</button>
+      <button class="btn small" id="ta-stop" type="button" hidden>中止</button>
+    </div>
+    <div id="ta-final" class="ta-final" hidden></div>
+  </section>
+
+  <div id="ta-bar" class="ta-bar" hidden>
+    <span><small>問題</small><b id="ta-count">1 / 30</b></span>
+    <span><small>正解</small><b id="ta-ok">0</b></span>
+    <span><small>秒</small><b id="ta-time">0.0</b></span>
+  </div>
+
+  <svg id="field" class="field" viewBox="-104 -104 208 208" role="img" aria-label="円形フィールド。タップで移動先を選ぶ"></svg>
+
+  <div class="row">
+    <button class="btn primary" id="check" type="button">答え合わせ</button>
+    <button class="btn" id="next" type="button">次の問題</button>
+  </div>
+  <div id="result" class="result" hidden></div>
+
+  <footer class="site-foot">© SQUARE ENIX<br>本サイトは FINAL FANTASY XIV のファンサイト（非公式）です。</footer>
+</div>
+
+<script>
+const R=100, RM=72, MKS=9;                  // フィールド半径・マーカー半径・マーカーの当たり半径
+const ER=41;                                // 真F・真M：マーカー間の方向。盾の安置円が中央を通り、両隣マーカーがギリギリ入る距離
+const W=2*(RM*Math.sin(Math.PI/8)-MKS);     // 十字の太さ：両隣のマーカーに被らない幅
+const DONUT=ER;                             // 盾の安置円：フィールド中央が円周上に重なる
+const MK=[
+  {n:'A',a:0,  c:'--mkA',sq:false},{n:'1',a:45, c:'--mkA',sq:true},
+  {n:'B',a:90, c:'--mkB',sq:false},{n:'2',a:135,c:'--mkB',sq:true},
+  {n:'C',a:180,c:'--mkC',sq:false},{n:'3',a:225,c:'--mkC',sq:true},
+  {n:'D',a:270,c:'--mkD',sq:false},{n:'4',a:315,c:'--mkD',sq:true}];
+const rad=d=>d*Math.PI/180;
+const pos=(a,r)=>[r*Math.sin(rad(a)),-r*Math.cos(rad(a))];
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+
+let S=null, pick=null, revealed=false;
+
+function newRound(){
+  const ftA=22.5+45*rnd(8);
+  S={
+    fT:{a:ftA, w:Math.random()<.5?'staff':'blade'},
+    fF:{a:45*rnd(8), w:Math.random()<.5?'staff':'blade'},
+    mT:{a:(ftA+180)%360, w:Math.random()<.5?'shield':'sword'},
+    mF:{w:Math.random()<.5?'shield':'sword'}
+  };
+  pick=null; revealed=false;
+  document.getElementById('result').hidden=true;
+  draw();
+}
+
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const WNAME={staff:'杖',blade:'ブレード',shield:'盾',sword:'剣'};
+
+// 武器アイコン（原点中心・約12×12）
+function weaponIcon(w){
+  const L='#f2f4f8';
+  if(w==='shield') return `<path d="M0,-5.5 L5,-3.8 L4.6,1.2 Q3.2,4.6 0,6 Q-3.2,4.6 -4.6,1.2 L-5,-3.8 Z" fill="${L}"/>`;
+  if(w==='sword') return `<g fill="${L}" stroke="${L}" stroke-linecap="round"><polygon points="-1,2 1,2 1,-4.2 0,-6 -1,-4.2" stroke="none"/><line x1="-3.2" y1="2.2" x2="3.2" y2="2.2" stroke-width="1.4"/><line x1="0" y1="2.4" x2="0" y2="5.6" stroke-width="1.6"/></g>`;
+  if(w==='staff') return `<g stroke="${L}" stroke-linecap="round"><line x1="-3.6" y1="5.8" x2="2.2" y2="-2.6" stroke-width="1.4"/><circle cx="3.2" cy="-4" r="2" fill="none" stroke-width="1.3"/></g>`;
+  // ブレード：細い剣が下向きに2本並ぶ
+  return `<g transform="rotate(-35)">`+[-2.4,2.4].map(d=>`<g fill="${L}" stroke="${L}" stroke-linecap="round"><line x1="${d}" y1="-6" x2="${d}" y2="-3.6" stroke-width="1.2"/><line x1="${d-1.4}" y1="-3.4" x2="${d+1.4}" y2="-3.4" stroke-width="1"/><polygon points="${d-.6},-3.2 ${d+.6},-3.2 ${d+.6},3.8 ${d},6 ${d-.6},3.8" stroke="none"/></g>`).join('')+`</g>`;
+}
+
+function enemy(x,y,kind,w,isTrue){
+  const col=css(kind==='F'?'--omF':'--omM'), gray=$('graybg').checked;
+  // 色でF（赤）/M（青）を表し、▽の中に武器を描く
+  const tag='';
+  return `<g opacity="${revealed&&!isTrue?.45:1}">
+    <polygon points="${x},${y+12} ${x-11},${y-8} ${x+11},${y-8}" fill="${gray?'#6b7280':col}" stroke="#fff" stroke-width="1" stroke-linejoin="round"/>
+    <g transform="translate(${x} ${y-1.8}) scale(.82)">${weaponIcon(w)}</g>${tag}</g>`;
+}
+
+// フィールドには自分だけ表示（タップした位置）
+function players(){
+  if(!pick) return '';
+  const [x,y]=pick, col=revealed?(judge(pick).safe?css('--ok'):css('--hit')):css('--accent');
+  return `<circle cx="${x}" cy="${y}" r="4.5" fill="${col}" stroke="#0f1218" stroke-width="1.2"/>
+    <text x="${x+6}" y="${y+2.5}" font-size="5.5" font-weight="700" fill="${col}" font-family="Chakra Petch">自分</text>`;
+}
+
+function aoeSvg(){
+  const hit='rgba(255,77,94,.42)', a=S.fT.a, [mx,my]=pos(S.mT.a,ER);
+  let s='';
+  // オメガF(true)：Fを(0,-RM)に置いた回転座標系で描く
+  if(S.fT.w==='staff'){
+    s+=`<g transform="rotate(${a})"><rect x="${-W/2}" y="-200" width="${W}" height="400" fill="${hit}"/>
+        <rect x="-200" y="${-ER-W/2}" width="400" height="${W}" fill="${hit}"/></g>`;
+  }else{
+    s+=`<g transform="rotate(${a})"><rect x="-200" y="-200" width="${200-W/2}" height="400" fill="${hit}"/>
+        <rect x="${W/2}" y="-200" width="${200-W/2}" height="400" fill="${hit}"/></g>`;
+  }
+  // オメガM(true)
+  if(S.mT.w==='shield'){
+    s+=`<path fill-rule="evenodd" fill="${hit}" d="M${-R-5},0a${R+5},${R+5} 0 1,0 ${2*R+10},0a${R+5},${R+5} 0 1,0 ${-2*R-10},0Z M${mx-DONUT},${my}a${DONUT},${DONUT} 0 1,0 ${2*DONUT},0a${DONUT},${DONUT} 0 1,0 ${-2*DONUT},0Z"/>`;
+  }else{
+    s+=`<circle cx="${mx}" cy="${my}" r="${DONUT}" fill="${hit}"/>`;
+  }
+  // 十字の太さとドーナツ内径の目安線
+  s+=`<circle cx="${mx}" cy="${my}" r="${DONUT}" fill="none" stroke="#ff4d5e" stroke-dasharray="2 2" stroke-width=".8"/>`;
+  return `<g class="aoe" clip-path="url(#clip)">${s}</g>`;
+}
+
+function draw(){
+  const f=document.getElementById('field');
+  let s=`<defs><clipPath id="clip"><circle r="${R}"/></clipPath></defs>
+  <circle r="${R}" fill="#1c2330" stroke="#3a4555" stroke-width="2"/>
+  <circle r="${RM}" fill="none" stroke="#2b3340" stroke-dasharray="1 3"/>
+  <line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="#2b3340" stroke-width=".5"/>
+  <line x1="0" y1="${-R}" x2="0" y2="${R}" stroke="#2b3340" stroke-width=".5"/>`;
+  if(revealed) s+=aoeSvg();
+  MK.forEach(m=>{
+    const [x,y]=pos(m.a,RM), c=css(m.c);
+    s+=m.sq?`<rect x="${x-7}" y="${y-7}" width="14" height="14" fill="rgba(0,0,0,.35)" stroke="${c}" stroke-width="1.8"/>`
+           :`<circle cx="${x}" cy="${y}" r="7.5" fill="rgba(0,0,0,.35)" stroke="${c}" stroke-width="1.8"/>`;
+    s+=`<text x="${x}" y="${y+3.2}" font-size="9" font-weight="700" text-anchor="middle" fill="${c}" font-family="Chakra Petch">${m.n}</text>`;
+  });
+  // 敵
+  const [fx,fy]=pos(S.fT.a,ER), [gx,gy]=pos(S.fF.a,RM-14), [mx,my]=pos(S.mT.a,ER);
+  s+=enemy(gx,gy,'F',S.fF.w,false);
+  s+=enemy(fx,fy,'F',S.fT.w,true);
+  s+=enemy(0,0,'M',S.mF.w,false);
+  s+=enemy(mx,my,'M',S.mT.w,true);
+  s+=players();
+  f.innerHTML=s;
+}
+
+function judge(p){
+  const hits=[];
+  if(Math.hypot(p[0],p[1])>R) hits.push('フィールド外');
+  // Fの回転座標系へ：u=軸方向成分, v=横方向成分
+  const a=rad(S.fT.a), x=p[0]*Math.cos(a)+p[1]*Math.sin(a), y=-p[0]*Math.sin(a)+p[1]*Math.cos(a);
+  const inAxis=Math.abs(x)<W/2, inBar=Math.abs(y+ER)<W/2;
+  if(S.fT.w==='staff'&&(inAxis||inBar)) hits.push('オメガF(杖)の十字');
+  if(S.fT.w==='blade'&&!inAxis) hits.push('オメガF(ブレード)の両サイド');
+  const [mx,my]=pos(S.mT.a,ER), d=Math.hypot(p[0]-mx,p[1]-my);
+  if(S.mT.w==='shield'&&d>DONUT) hits.push('オメガM(盾)のドーナツ');
+  if(S.mT.w==='sword'&&d<DONUT) hits.push('オメガM(剣)の円範囲');
+  return {safe:hits.length===0,hits};
+}
+
+const $=id=>document.getElementById(id);
+const FEEDBACK_MS=700;               // タイムアタック：結果を見せてから次の問題へ
+let TA=null;                         // タイムアタック中の状態
+let qShownAt=0;
+
+function reveal(){
+  revealed=true; draw();
+  const r=$('result'); r.hidden=false;
+  if(!pick){r.className='result';r.textContent='未選択';return null}
+  const j=judge(pick);
+  r.className='result '+(j.safe?'ok':'ng');
+  r.textContent=j.safe?'安置':'被弾';
+  return j;
+}
+
+function syncUI(){
+  const inst=$('instant').checked;
+  $('check').hidden=!!TA||inst;
+  $('next').hidden=!!TA;
+  $('ta-start').hidden=!!TA; $('ta-stop').hidden=!TA;
+  $('instant').disabled=!!TA; $('qcount').disabled=!!TA;
+  $('ta-bar').hidden=!TA;
+}
+
+function taTick(){
+  if(!TA) return;
+  const t=TA.done?TA.elapsed:(performance.now()-TA.start)/1000;
+  $('ta-time').textContent=t.toFixed(1);
+  $('ta-count').textContent=`${Math.min(TA.i+1,TA.n)} / ${TA.n}`;
+  $('ta-ok').textContent=TA.ok;
+  if(!TA.done) requestAnimationFrame(taTick);
+}
+
+function taStart(){
+  const n=Math.max(1,Math.min(200,parseInt($('qcount').value,10)||30));
+  $('qcount').value=n;
+  TA={n,i:0,ok:0,start:performance.now(),busy:false,done:false};
+  $('ta-final').hidden=true;
+  newRound(); syncUI(); taTick();
+}
+function taStop(){TA=null; syncUI(); newRound()}
+function taFinish(){
+  TA.done=true; TA.elapsed=(performance.now()-TA.start)/1000; taTick();
+  const f=$('ta-final'); f.hidden=false;
+  f.innerHTML=`<b>${TA.n}問 完了</b>　タイム <b>${TA.elapsed.toFixed(1)}秒</b>　正解 <b>${TA.ok}/${TA.n}</b>（${Math.round(TA.ok/TA.n*100)}%）`;
+  TA=null; syncUI();
+}
+
+$('field').addEventListener('click',e=>{
+  if(revealed||(TA&&TA.busy)) return;
+  const svg=e.currentTarget, pt=svg.createSVGPoint();
+  pt.x=e.clientX; pt.y=e.clientY;
+  const q=pt.matrixTransform(svg.getScreenCTM().inverse());
+  pick=[q.x,q.y];
+  if(TA){
+    TA.busy=true;
+    if(reveal().safe) TA.ok++;
+    setTimeout(()=>{
+      if(!TA) return;
+      TA.i++;
+      if(TA.i>=TA.n) return taFinish();
+      TA.busy=false; newRound();
+    },FEEDBACK_MS);
+    return;
+  }
+  if($('instant').checked) reveal(); else draw();
+});
+$('check').addEventListener('click',reveal);
+$('next').addEventListener('click',newRound);
+$('graybg').addEventListener('change',()=>{
+  try{localStorage.setItem('top_p2_graybg',$('graybg').checked?'1':'0')}catch(e){}
+  draw();
+});
+$('instant').addEventListener('change',()=>{
+  try{localStorage.setItem('top_p2_instant',$('instant').checked?'1':'0')}catch(e){}
+  syncUI();
+});
+$('qcount').addEventListener('change',()=>{try{localStorage.setItem('top_p2_qcount',$('qcount').value)}catch(e){}});
+$('ta-start').addEventListener('click',taStart);
+$('ta-stop').addEventListener('click',taStop);
+try{
+  const v=localStorage.getItem('top_p2_instant'); if(v!==null) $('instant').checked=v==='1';
+  const g=localStorage.getItem('top_p2_graybg'); if(g!==null) $('graybg').checked=g==='1';
+  const q=localStorage.getItem('top_p2_qcount'); if(q) $('qcount').value=q;
+}catch(e){}
+newRound(); syncUI();
+</script>
+
+</body>
+</html>

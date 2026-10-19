@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>連携プログラム_プレステ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+/* Layout: 1カラム。上に設定、中央に図、下に操作ボタン */
+:root{
+  --bg:#0f1218; --panel:#181d26; --line:#2b3340; --fg:#e7eaf0; --mute:#8b94a5;
+  --accent:#5fd3c4; --hit:#ff4d5e; --ok:#57d98a;
+  --mkA:#ff5a5a; --mkB:#ffd23f; --mkC:#4ea8ff; --mkD:#c07bff;
+  --omF:#e8434f; --omM:#3c7dff;
+  --display:"Chakra Petch","Zen Kaku Gothic New",system-ui,sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans",system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding-block:16px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-size:1.35rem;margin:0;letter-spacing:.04em;text-wrap:balance}
+h1 small{display:block;font-family:var(--body);font-size:.8rem;color:var(--mute);font-weight:400;letter-spacing:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.label{font-family:var(--display);font-size:.72rem;letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.pt-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.hint{font-size:.78rem;color:var(--mute);margin-top:-6px}
+.pt{position:relative;display:grid;grid-template-columns:1fr 1fr;column-gap:clamp(56px,22vw,120px)}
+.tethers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.ptcol{position:relative;display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:6px;font:700 .95rem var(--display);padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+#colR .slot{flex-direction:row-reverse}
+.slot svg{flex:none;display:block}
+.slot[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent)}
+.slot:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.party{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;font-size:.88rem}
+.pm{display:flex;justify-content:space-between;gap:8px;padding:3px 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+.pm.me{background:rgba(95,211,196,.15);outline:1px solid var(--accent)}
+.pm b{font-family:var(--display)}
+.sym{font-weight:700;min-width:1.4em;text-align:center}
+.debuff{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{font:700 .85rem var(--display);padding:3px 10px;border-radius:99px;border:1px solid currentColor}
+.chip.mid{color:#ffb547}.chip.far{color:#7fc8ff}
+.field{width:min(760px,calc(100vw - 12px));max-width:none;align-self:center;aspect-ratio:1;display:block;touch-action:manipulation;cursor:crosshair}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{flex:1;min-width:120px;font:700 .95rem var(--body);padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#0f1218}
+.btn:disabled{opacity:.4;cursor:default}
+.result{font-weight:700;padding:10px 12px;border-radius:8px;border:1px solid var(--line)}
+.result.ok{color:var(--ok);border-color:var(--ok)}
+.result.ng{color:var(--hit);border-color:var(--hit)}
+.result ul{margin:4px 0 0;padding-left:1.2em;font-weight:400;color:var(--fg);font-size:.88rem}
+.opt{display:flex;align-items:center;gap:8px;font-size:.92rem;cursor:pointer}
+.opt input{width:18px;height:18px;accent-color:var(--accent)}
+.ta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.qn{display:flex;align-items:center;gap:6px}
+.qn input{width:4.5em;font:700 1rem var(--display);padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums}
+.btn.small{flex:none;min-width:0;padding:7px 14px;font-size:.88rem}
+.ta-final{padding:8px 10px;border-radius:8px;border:1px solid var(--accent);color:var(--fg);font-size:.92rem}
+.ta-final b{color:var(--accent);font-family:var(--display)}
+.ta-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:8px 12px;text-align:center}
+.ta-bar small{display:block;font-size:.7rem;color:var(--mute);letter-spacing:.1em}
+.ta-bar b{font:700 1.25rem var(--display);font-variant-numeric:tabular-nums}
+.legend{font-size:.82rem;color:var(--mute);display:flex;flex-direction:column;gap:2px}
+.legend b{color:var(--fg)}
+@media (prefers-reduced-motion:no-preference){.aoe{animation:fade .35s ease-out}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.site-foot{margin-top:8px;padding-top:12px;border-top:1px solid var(--line);font-size:.75rem;line-height:1.7;color:var(--mute);text-align:center}
+.slot{justify-content:flex-end;padding:2px 10px}
+#pt-panel{gap:6px;padding-block:8px}
+#pt-panel .ptcol{gap:4px}
+#pt-panel .sub{letter-spacing:0;text-transform:none}
+#pt-panel .label{white-space:nowrap}
+#pt-panel .pt-head{flex-wrap:nowrap}
+[hidden]{display:none!important}
+.slot.moved{border-style:dashed}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>連携プログラム_プレステ</h1>
+
+  <section class="panel" aria-labelledby="lbl-opt">
+    <div class="label" id="lbl-opt">オプション</div>
+    <label class="opt"><input type="checkbox" id="instant" checked> 位置を選んだ時点で結果を表示</label>
+    <div class="ta-row">
+      <label class="opt" for="qcount">タイムアタック</label>
+      <span class="qn"><input type="number" id="qcount" min="1" max="200" value="30" inputmode="numeric"> 問</span>
+      <button class="btn small primary" id="ta-start" type="button">スタート</button>
+      <button class="btn small" id="ta-stop" type="button" hidden>中止</button>
+    </div>
+    <div id="ta-final" class="ta-final" hidden></div>
+  </section>
+
+  <div id="ta-bar" class="ta-bar" hidden>
+    <span><small>問題</small><b id="ta-count">1 / 30</b></span>
+    <span><small>正解</small><b id="ta-ok">0</b></span>
+    <span><small>秒</small><b id="ta-time">0.0</b></span>
+  </div>
+
+  <section class="panel" id="pt-panel" aria-labelledby="lbl-pt">
+    <div class="pt-head">
+      <div class="label" id="lbl-pt">PT・デバフ<span class="sub">（自分をタップ）</span></div>
+      <div class="debuff">全員 <span id="glow" class="chip"></span></div>
+    </div>
+    <div class="pt" id="pt">
+      <svg class="tethers" id="tethers" aria-hidden="true"></svg>
+      <div class="ptcol" id="colL"></div>
+      <div class="ptcol" id="colR"></div>
+    </div>
+  </section>
+
+  <svg id="field" class="field" viewBox="-104 -104 208 208" role="img" aria-label="円形フィールド。タップで移動先を選ぶ"></svg>
+
+  <div class="row">
+    <button class="btn primary" id="check" type="button">答え合わせ</button>
+    <button class="btn" id="next" type="button">次の問題</button>
+  </div>
+  <div id="result" class="result" hidden></div>
+
+  <footer class="site-foot">© SQUARE ENIX<br>本サイトは FINAL FANTASY XIV のファンサイト（非公式）です。</footer>
+</div>
+
+<script>
+const R=100, RM=72;
+const LINE_W=2*(RM*Math.SQRT1_2-7);  // 中央の直線範囲（南北）：マーカー4・1に接する太さ
+const TOL=14;                    // 正解とみなす距離
+const ORDER=['o','x','v','s'];   // ○✕△□ の上からの並び
+const SLOTS=['L1','L2','L3','L4','R1','R2','R3','R4'];
+const MK=[
+  {n:'A',a:0,  c:'--mkA',sq:false},{n:'1',a:45, c:'--mkA',sq:true},
+  {n:'B',a:90, c:'--mkB',sq:false},{n:'2',a:135,c:'--mkB',sq:true},
+  {n:'C',a:180,c:'--mkC',sq:false},{n:'3',a:225,c:'--mkC',sq:true},
+  {n:'D',a:270,c:'--mkD',sq:false},{n:'4',a:315,c:'--mkD',sq:true}];
+const rad=d=>d*Math.PI/180;
+const pos=(a,r)=>[r*Math.sin(rad(a)),-r*Math.cos(rad(a))];
+const MID_XV=[(pos(315,RM)[0]+pos(270,RM)[0])/2,(pos(315,RM)[1]+pos(270,RM)[1])/2]; // ミドルの✕：マーカー4とDの間
+const CORNER=[MID_XV[0],-Math.sqrt((R-7)**2-MID_XV[0]**2)]; // ○と□：ミドルの✕△と同じ縦の線上で外周ぎりぎり（□は南）。ミドル・ファー共通
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const $=id=>document.getElementById(id);
+
+// プレステマーカー：○赤 ✕青 △緑 □紫
+const SYM={o:{c:'#ff4d4d',name:'まる'},x:{c:'#3d8bff',name:'ばつ'},v:{c:'#3fd16b',name:'さんかく'},s:{c:'#b56bff',name:'しかく'}};
+function symIcon(k,x,y,sc){
+  const c=SYM[k].c, w=1.8, t=`transform="translate(${x} ${y}) scale(${sc})"`;
+  if(k==='o') return `<circle ${t} r="5" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+  if(k==='x') return `<g ${t} stroke="${c}" stroke-width="${w}" stroke-linecap="round"><line x1="-4.5" y1="-4.5" x2="4.5" y2="4.5"/><line x1="4.5" y1="-4.5" x2="-4.5" y2="4.5"/></g>`;
+  if(k==='v') return `<polygon ${t} points="0,-5.5 5.5,4 -5.5,4" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"/>`;
+  return `<rect ${t} x="-4.5" y="-4.5" width="9" height="9" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+}
+
+let me='L1', S=null, pick=null, revealed=false;
+try{const m=localStorage.getItem('top_p2ps_me'); if(SLOTS.includes(m)) me=m}catch(e){}
+
+// 左右の最終的な担当：同じ側にペアがいたら、下の人が反対側へ
+function sideOf(slot){
+  const k=S.syms[slot], mate=SLOTS.find(p=>p!==slot&&S.syms[p]===k);
+  if(mate[0]!==slot[0]) return slot[0];
+  const lower=+slot[1]>+mate[1];
+  return lower?(slot[0]==='L'?'R':'L'):slot[0];
+}
+// 目標位置
+function target(slot){
+  const k=S.syms[slot], side=sideOf(slot), sx=side==='L'?-1:1;
+  // 上から何段目か（ミドル：両側とも○✕△□、ファー：右は□△✕○）
+  const row=(S.glow==='far'&&side==='R')?3-ORDER.indexOf(k):ORDER.indexOf(k), sy=row<2?-1:1;
+  if(row===0||row===3) return [sx*-CORNER[0], sy*-CORNER[1]];          // 外周の斜め
+  if(S.glow==='mid') return [sx*-MID_XV[0], sy*-MID_XV[1]];          // マーカー4とD（など）の間
+  const f=(R-7)/Math.hypot(MID_XV[0],MID_XV[1]);                   // ミドルの位置と中央を結ぶ直線上の外周
+  return [sx*-MID_XV[0]*f, sy*-MID_XV[1]*f];
+}
+
+function newRound(){
+  S={glow:Math.random()<.5?'mid':'far',syms:{}};
+  const pool=shuffle(['o','o','x','x','v','v','s','s']);
+  SLOTS.forEach((s,i)=>S.syms[s]=pool[i]);
+  pick=null; revealed=false; qShownAt=performance.now();
+  $('result').hidden=true;
+  renderInfo(); draw();
+}
+function renderInfo(){
+  const g=$('glow');
+  g.className='chip '+S.glow; g.textContent=S.glow==='mid'?'ミドル':'ファー';
+  ['L','R'].forEach(side=>{
+    $('col'+side).innerHTML=SLOTS.filter(s=>s[0]===side).map(s=>{
+      const moved=revealed&&sideOf(s)!==s[0];
+      return `<button class="slot${moved?' moved':''}" type="button" aria-pressed="${s===me}" data-s="${s}" aria-label="${s}${moved?'（反対側へ）':''}"><svg class="ico" data-s="${s}" viewBox="-8 -8 16 16" width="18" height="18" aria-label="${SYM[S.syms[s]].name}">${symIcon(S.syms[s],0,0,1)}</svg></button>`}).join('');
+  });
+  drawTethers();
+}
+// 同じ記号の2人を線でつなぐ（同じ列どうしは中央側へふくらむ曲線）
+function drawTethers(){
+  const box=$('pt').getBoundingClientRect(), t=$('tethers');
+  const c={};
+  document.querySelectorAll('.ico').forEach(el=>{const r=el.getBoundingClientRect();c[el.dataset.s]=[r.left+r.width/2-box.left,r.top+r.height/2-box.top]});
+  let s='';
+  ORDER.forEach(k=>{
+    const [a,b]=SLOTS.filter(p=>S.syms[p]===k), A=c[a], B=c[b];
+    if(!A||!B) return;
+    if(a[0]===b[0]){
+      const dir=a[0]==='L'?1:-1, bulge=34+Math.abs(A[1]-B[1])*.45;
+      s+=`<path d="M${A[0]},${A[1]} Q${A[0]+dir*bulge},${(A[1]+B[1])/2} ${B[0]},${B[1]}" fill="none" stroke="${SYM[k].c}" stroke-width="2" opacity=".85"/>`;
+    }else{
+      s+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="${SYM[k].c}" stroke-width="2" opacity=".85"/>`;
+    }
+  });
+  t.setAttribute('viewBox',`0 0 ${box.width} ${box.height}`);
+  t.innerHTML=s;
+}
+addEventListener('resize',()=>S&&drawTethers());
+
+function judge(p){
+  const [tx,ty]=target(me);
+  return {ok:Math.hypot(p[0]-tx,p[1]-ty)<=TOL};
+}
+
+function draw(){
+  let s=`<defs><clipPath id="clip"><circle r="${R}"/></clipPath></defs>
+  <circle r="${R}" fill="#1c2330" stroke="#3a4555" stroke-width="2"/>
+  <circle r="${RM}" fill="none" stroke="#2b3340" stroke-dasharray="1 3"/>
+  <line x1="${-R}" y1="0" x2="${R}" y2="0" stroke="#2b3340" stroke-width=".5"/>
+  <line x1="0" y1="${-R}" x2="0" y2="${R}" stroke="#2b3340" stroke-width=".5"/>`;
+  if(revealed) s+=`<g class="aoe" clip-path="url(#clip)"><rect x="${-LINE_W/2}" y="${-R}" width="${LINE_W}" height="${2*R}" fill="rgba(255,77,94,.42)"/></g>`;
+  // 直線範囲の向きは本来8方向ランダムなので、マーカーは区別のつかない同じアイコンにする
+  MK.forEach(m=>{
+    const [x,y]=pos(m.a,RM);
+    s+=`<g transform="translate(${x} ${y})"><circle r="7" fill="rgba(0,0,0,.35)" stroke="#7d8696" stroke-width="1.6"/>
+      <polygon points="0,-3.6 3.6,0 0,3.6 -3.6,0" fill="#7d8696"/></g>`;
+  });
+  if(revealed){
+    // 全員の正しい位置
+    SLOTS.forEach(sl=>{
+      const [x,y]=target(sl), mine=sl===me;
+      s+=`<circle cx="${x}" cy="${y}" r="${mine?TOL:6.5}" fill="${mine?'rgba(95,211,196,.12)':'rgba(0,0,0,.45)'}" stroke="${mine?css('--accent'):'#3a4555'}" stroke-width="${mine?1.2:.8}" ${mine?'stroke-dasharray="2 2"':''}/>`;
+      s+=symIcon(S.syms[sl],x,y,.9);
+    });
+  }
+  if(pick){
+    const [x,y]=pick, col=revealed?(judge(pick).ok?css('--ok'):css('--hit')):css('--accent');
+    s+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${col}" stroke="#0f1218" stroke-width="1.2"/>
+      <text x="${x+6}" y="${y+2.5}" font-size="5.5" font-weight="700" fill="${col}" font-family="Chakra Petch">自分</text>`;
+  }
+  $('field').innerHTML=s;
+}
+
+const FEEDBACK_MS=900;
+let TA=null, qShownAt=0;
+
+function reveal(){
+  revealed=true; renderInfo(); draw();
+  const r=$('result'); r.hidden=false;
+  if(!pick){r.className='result';r.textContent='未選択';return {ok:false}}
+  const j=judge(pick);
+  r.className='result '+(j.ok?'ok':'ng');
+  r.textContent=j.ok?'正解':'不正解';
+  return j;
+}
+
+function syncUI(){
+  const inst=$('instant').checked;
+  $('check').hidden=!!TA||inst;
+  $('next').hidden=!!TA;
+  $('ta-start').hidden=!!TA; $('ta-stop').hidden=!TA;
+  $('instant').disabled=!!TA; $('qcount').disabled=!!TA;
+  $('ta-bar').hidden=!TA;
+}
+function taTick(){
+  if(!TA) return;
+  const t=TA.done?TA.elapsed:(performance.now()-TA.start)/1000;
+  $('ta-time').textContent=t.toFixed(1);
+  $('ta-count').textContent=`${Math.min(TA.i+1,TA.n)} / ${TA.n}`;
+  $('ta-ok').textContent=TA.ok;
+  if(!TA.done) requestAnimationFrame(taTick);
+}
+function taStart(){
+  const n=Math.max(1,Math.min(200,parseInt($('qcount').value,10)||30));
+  $('qcount').value=n;
+  TA={n,i:0,ok:0,start:performance.now(),busy:false,done:false};
+  $('ta-final').hidden=true;
+  newRound(); syncUI(); taTick();
+}
+function taStop(){TA=null; syncUI(); newRound()}
+function taFinish(){
+  TA.done=true; TA.elapsed=(performance.now()-TA.start)/1000; taTick();
+  const f=$('ta-final'); f.hidden=false;
+  f.innerHTML=`<b>${TA.n}問 完了</b>　タイム <b>${TA.elapsed.toFixed(1)}秒</b>　正解 <b>${TA.ok}/${TA.n}</b>（${Math.round(TA.ok/TA.n*100)}%）`;
+  TA=null; syncUI();
+}
+
+$('field').addEventListener('click',e=>{
+  if(revealed||(TA&&TA.busy)) return;
+  const svg=e.currentTarget, pt=svg.createSVGPoint();
+  pt.x=e.clientX; pt.y=e.clientY;
+  const q=pt.matrixTransform(svg.getScreenCTM().inverse());
+  pick=[q.x,q.y];
+  if(TA){
+    TA.busy=true;
+    if(reveal().ok) TA.ok++;
+    setTimeout(()=>{
+      if(!TA) return;
+      TA.i++;
+      if(TA.i>=TA.n) return taFinish();
+      TA.busy=false; newRound();
+    },FEEDBACK_MS);
+    return;
+  }
+  if($('instant').checked) reveal(); else draw();
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.slot'); if(!b||TA) return;
+  me=b.dataset.s;
+  try{localStorage.setItem('top_p2ps_me',me)}catch(e){}
+  renderInfo(); draw();
+});
+$('check').addEventListener('click',reveal);
+$('next').addEventListener('click',newRound);
+$('instant').addEventListener('change',()=>{
+  try{localStorage.setItem('top_p2ps_instant',$('instant').checked?'1':'0')}catch(e){}
+  syncUI();
+});
+$('qcount').addEventListener('change',()=>{try{localStorage.setItem('top_p2ps_qcount',$('qcount').value)}catch(e){}});
+$('ta-start').addEventListener('click',taStart);
+$('ta-stop').addEventListener('click',taStop);
+try{
+  const v=localStorage.getItem('top_p2ps_instant'); if(v!==null) $('instant').checked=v==='1';
+  const q=localStorage.getItem('top_p2ps_qcount'); if(q) $('qcount').value=q;
+}catch(e){}
+newRound(); syncUI();
+document.fonts?.ready.then(()=>drawTethers());
+</script>
+</body>
+</html>
